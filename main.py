@@ -1,42 +1,62 @@
-from flask import Flask, render_template, redirect, url_for, flash
-from flask import session  # optional, aber gut für zukünftige Erweiterung
-import os
+from flask import Flask, redirect, request, url_for, session, render_template, flash
+from spotipy import SpotifyOAuth, Spotify
 from dotenv import load_dotenv
-import spotipy
-from spotipy import SpotifyOAuth
-from tqdm import tqdm
+import os
 
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = 'irgendein_geheimer_schlüssel'  # nötig für flash()
+app.secret_key = os.getenv("SECRET_KEY", "some-default-key")  # unbedingt setzen!
+
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI", "https://spotify-playlist-sort.onrender.com/callback")
+
+SCOPE = "playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public"
 
 
-@app.route('/')
+@app.route("/")
 def index():
     return render_template("index.html")
 
 
-@app.route('/run', methods=['POST'])
+@app.route("/login")
+def login():
+    sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,
+                            client_secret=CLIENT_SECRET,
+                            redirect_uri=REDIRECT_URI,
+                            scope=SCOPE)
+    auth_url = sp_oauth.get_authorize_url()
+    return redirect(auth_url)
+
+
+@app.route("/callback")
+def callback():
+    sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,
+                            client_secret=CLIENT_SECRET,
+                            redirect_uri=REDIRECT_URI,
+                            scope=SCOPE)
+    session.clear()
+    code = request.args.get("code")
+    token_info = sp_oauth.get_access_token(code)
+    session["token_info"] = token_info
+    flash("✅ Login erfolgreich – du kannst jetzt synchronisieren!")
+    return redirect(url_for("index"))
+
+
+def get_spotify_client():
+    token_info = session.get("token_info", None)
+    if not token_info:
+        return None
+    sp = Spotify(auth=token_info["access_token"])
+    return sp
+
+
+@app.route("/run", methods=["POST"])
 def run_spotify_script():
-    import os
-
-    import spotipy
-    from dotenv import load_dotenv
-    from spotipy import SpotifyOAuth
-    from tqdm import tqdm
-
-    load_dotenv()
-    client_id = os.getenv("CLIENT_ID")
-    client_secret = os.getenv("CLIENT_SECRET")
-    redirect_uri = os.getenv("REDIRECT_URI", "https://spotify-playlist-sort.onrender.com/callback")
-    scope = 'playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative'
-
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-        client_id=client_id,
-        client_secret=client_secret,
-        redirect_uri=redirect_uri,
-        scope=scope
-    ))
+    sp = get_spotify_client()
+    if not sp:
+        flash("❌ Nicht eingeloggt – bitte zuerst authentifizieren.")
+        return redirect(url_for("index"))
 
     # Playlist mit bestimmtem Namen suchen
     playlist_name_to_find = "corekid forever"
@@ -146,5 +166,4 @@ def run_spotify_script():
     print("✅ Fertig!")
 
     flash("✅ Playlist wurde erfolgreich aktualisiert!")
-    return redirect(url_for('index'))
-
+    return redirect(url_for("index"))

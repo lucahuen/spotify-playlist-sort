@@ -38,22 +38,22 @@
     </style>
 </head>
 <body>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div style="color: green;">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
 
-    <h1>🎵 Playlist aktualisieren</h1>
+<h1>🎵 Playlist aktualisieren</h1>
 
-    <!-- Erfolgsmeldung -->
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-          <div class="flash-message">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+<a href="/login">
+    <button>Login mit Spotify</button>
+</a>
 
-    <!-- Button zum Ausführen -->
-    <form action="/run" method="post">
-        <button type="submit">Jetzt synchronisieren</button>
-    </form>
-
+<form action="/run" method="post" style="margin-top: 20px;">
+    <button type="submit">Jetzt synchronisieren</button>
+</form>
 </body>
 </html>
