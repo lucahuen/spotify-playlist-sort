@@ -1,10 +1,9 @@
-import os
-from dotenv import load_dotenv
-import spotipy
-from spotipy import SpotifyOAuth
-from tqdm import tqdm
-
 def update_playlist():
+    import os
+    from dotenv import load_dotenv
+    import spotipy
+    from spotipy import SpotifyOAuth
+    from tqdm import tqdm
 
     load_dotenv()
 
