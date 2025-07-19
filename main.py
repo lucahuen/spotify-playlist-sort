@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, flash
+from flask import session  # optional, aber gut für zukünftige Erweiterung
 import os
 from dotenv import load_dotenv
 import spotipy
@@ -7,6 +8,7 @@ from tqdm import tqdm
 
 load_dotenv()
 app = Flask(__name__)
+app.secret_key = 'irgendein_geheimer_schlüssel'  # nötig für flash()
 
 
 @app.route('/')
@@ -14,7 +16,7 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/run')
+@app.route('/run', methods=['POST'])
 def run_spotify_script():
     import os
 
@@ -143,4 +145,6 @@ def run_spotify_script():
 
     print("✅ Fertig!")
 
-    return "✅ Playlist wurde aktualisiert!"
+    flash("✅ Playlist wurde erfolgreich aktualisiert!")
+    return redirect(url_for('index'))
+
