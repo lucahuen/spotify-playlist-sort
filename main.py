@@ -16,8 +16,14 @@ def index():
 
 @app.route('/run')
 def run_spotify_script():
-    load_dotenv()
+    import os
 
+    import spotipy
+    from dotenv import load_dotenv
+    from spotipy import SpotifyOAuth
+    from tqdm import tqdm
+
+    load_dotenv()
     client_id = os.getenv("CLIENT_ID")
     client_secret = os.getenv("CLIENT_SECRET")
     redirect_uri = os.getenv("REDIRECT_URI", "http://127.0.0.1:8889/callback")
@@ -30,10 +36,32 @@ def run_spotify_script():
         scope=scope
     ))
 
-    # Playlist #40 (Index 39)
-    playlist_index = 39
-    playlists = sp.current_user_playlists(limit=50)
-    playlist = playlists['items'][playlist_index]
+    # Playlist mit bestimmtem Namen suchen
+    playlist_name_to_find = "corekid forever"
+    playlist = None
+
+    # Hole alle Playlists (auch bei mehr als 50 – mit Pagination)
+    offset = 0
+    while True:
+        playlists = sp.current_user_playlists(limit=50, offset=offset)
+        items = playlists['items']
+        if not items:
+            break
+
+        for pl in items:
+            if pl['name'].lower() == playlist_name_to_find.lower():
+                playlist = pl
+                break
+
+        if playlist:
+            break
+        offset += 50
+
+    # Abbruch, falls nicht gefunden
+    if not playlist:
+        raise Exception(f"❌ Playlist mit dem Namen '{playlist_name_to_find}' nicht gefunden!")
+
+    # Falls gefunden → hole ID und Name
     playlist_id = playlist['id']
     playlist_name = playlist['name']
 
