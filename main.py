@@ -3,6 +3,8 @@ import os
 from spotipy import SpotifyOAuth, Spotify
 from dotenv import load_dotenv
 
+from vibe_code_solution import update_playlist
+
 load_dotenv()
 app = Flask(__name__)
 
@@ -12,12 +14,5 @@ def index():
 
 @app.route('/run')
 def run_spotify_script():
-    sp = Spotify(auth_manager=SpotifyOAuth(
-        client_id=os.getenv("CLIENT_ID"),
-        client_secret=os.getenv("CLIENT_SECRET"),
-        redirect_uri=os.getenv("REDIRECT_URI"),
-        scope='playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private'
-    ))
-
-    # ✂️ hier kommt dein Code rein (Playlists holen, sortieren, aktualisieren ...)
+    update_playlist()
     return "✅ Playlist wurde aktualisiert!"
