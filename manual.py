@@ -8,7 +8,7 @@ from tqdm import tqdm
 load_dotenv()
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
-redirect_uri = os.getenv("REDIRECT_URI", "http://127.0.0.1:8889/callback")
+redirect_uri = os.getenv("REDIRECT_URI", "https://spotify-playlist-sort.onrender.com/callback")
 scope = 'playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative'
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
