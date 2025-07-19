@@ -2,6 +2,7 @@ from flask import Flask, redirect, request, url_for, session, render_template, f
 from spotipy import SpotifyOAuth, Spotify
 from dotenv import load_dotenv
 import os
+from tqdm import tqdm
 
 load_dotenv()
 app = Flask(__name__)
